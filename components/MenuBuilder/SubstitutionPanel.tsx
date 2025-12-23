@@ -40,6 +40,22 @@ const SubstitutionPanel: React.FC<SubstitutionPanelProps> = ({
                         <i className="fas fa-spinner fa-spin text-2xl mb-2"></i>
                         <span className="text-[10px] font-bold">AI 正全力搜尋替代方案...</span>
                     </div>
+                ) : suggestions.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-center p-6">
+                        <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-4">
+                            <i className="fas fa-tools text-amber-500 text-2xl"></i>
+                        </div>
+                        <h4 className="font-bold text-slate-700 mb-2">功能開發中</h4>
+                        <p className="text-sm text-slate-500 mb-4">
+                            AI 智慧替換功能需要設定 API Key 才能使用。
+                        </p>
+                        <button
+                            onClick={onClose}
+                            className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-200 transition"
+                        >
+                            關閉面板
+                        </button>
+                    </div>
                 ) : (
                     suggestions.map((sub, idx) => (
                         <div key={idx} className="bg-white border border-gray-100 rounded-2xl p-4 hover:shadow-xl hover:border-emerald-200 transition group">

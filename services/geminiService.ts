@@ -1,14 +1,47 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+// Lazy initialization to avoid crash when API key is not set
+let ai: GoogleGenAI | null = null;
+
+const getAI = () => {
+  if (ai) return ai;
+
+  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    console.warn("Gemini API Key not configured. AI features will be disabled.");
+    return null;
+  }
+
+  try {
+    ai = new GoogleGenAI({ apiKey });
+    return ai;
+  } catch (error) {
+    console.error("Failed to initialize Gemini AI:", error);
+    return null;
+  }
+};
 
 export const getNutritionInfo = async (foodName: string) => {
+  const client = getAI();
+  if (!client) {
+    // Return mock data when AI is not available
+    return {
+      name: foodName,
+      calories: 100,
+      protein: 5,
+      carbs: 15,
+      fat: 3,
+      unit: "100g",
+      category: "other"
+    };
+  }
+
   const prompt = `Provide the nutritional information for "${foodName}" per 100g (or 1 standard serving unit if appropriate). Estimate conservative average values.`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+    const response = await client.models.generateContent({
+      model: "gemini-2.0-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -21,8 +54,8 @@ export const getNutritionInfo = async (foodName: string) => {
             carbs: { type: Type.NUMBER, description: "Carbohydrates (g)" },
             fat: { type: Type.NUMBER, description: "Fat (g)" },
             unit: { type: Type.STRING, description: "Unit used for measurement (e.g., 100g, 1顆)" },
-            category: { 
-              type: Type.STRING, 
+            category: {
+              type: Type.STRING,
               enum: ['staple', 'meat', 'vegetable', 'fruit', 'dairy', 'fat', 'other'],
               description: "Food category"
             }
@@ -33,7 +66,7 @@ export const getNutritionInfo = async (foodName: string) => {
     });
 
     if (response.text) {
-        return JSON.parse(response.text);
+      return JSON.parse(response.text);
     }
     return null;
   } catch (error) {
@@ -43,11 +76,17 @@ export const getNutritionInfo = async (foodName: string) => {
 };
 
 export const getSubstitutes = async (foodName: string, category: string) => {
+  const client = getAI();
+  if (!client) {
+    // Return empty array when AI is not available
+    return [];
+  }
+
   const prompt = `Based on the food "${foodName}" in the category "${category}", suggest 3 healthy alternatives within the same nutritional group. For each, provide a brief reason why it's a good swap and its estimated nutrition per 100g.`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+    const response = await client.models.generateContent({
+      model: "gemini-2.0-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -71,7 +110,7 @@ export const getSubstitutes = async (foodName: string, category: string) => {
     });
 
     if (response.text) {
-        return JSON.parse(response.text);
+      return JSON.parse(response.text);
     }
     return [];
   } catch (error) {

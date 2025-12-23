@@ -1,0 +1,5 @@
+{
+  "name": "NutriPlan AI (智能營養師)",
+  "description": "專業營養師專用的菜單規劃與食物資料庫管理系統。支援自訂食物資料庫、AI 營養素自動估算、以及即時菜單熱量計算與匯出功能。",
+  "requestFramePermissions": []
+}

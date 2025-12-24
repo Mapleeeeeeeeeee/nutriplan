@@ -68,7 +68,7 @@ const MenuBuilder: React.FC<MenuBuilderProps> = ({ foods, templates, onAddTempla
   const [showSaveTemplatePrompt, setShowSaveTemplatePrompt] = useState(false);
 
   const getFood = (id: string) => foods.find(f => f.id === id);
-  const { stats, targetGrams } = useMenuStats(currentPlan, foods);
+  const { stats, targetGrams } = useMenuStats(currentPlan, foods, activeChoiceOption);
 
   const handleAddFood = (meal: MealType, foodId: string, method: CookingMethod, portionDesc: string) => {
     const food = getFood(foodId);

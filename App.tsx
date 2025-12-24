@@ -7,11 +7,24 @@ import { FoodItem, View, MenuPlan, MealTemplate } from './types';
 import { INITIAL_FOODS, MEAL_TEMPLATES } from './constants';
 import ConfirmModal from './components/ConfirmModal';
 
+// 食物資料庫版本號 - 每次結構變更時遞增以強制更新 localStorage
+const FOOD_DB_VERSION = '2.0.0'; // 2.0.0: 改用 per-portion 格式 + fatLevel
+
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('builder');
 
   const [foods, setFoods] = useState<FoodItem[]>(() => {
+    const savedVersion = localStorage.getItem('nutriplan_foods_version');
     const saved = localStorage.getItem('nutriplan_foods');
+
+    // 如果版本不符，使用新的 INITIAL_FOODS 並清除舊資料
+    if (savedVersion !== FOOD_DB_VERSION) {
+      localStorage.setItem('nutriplan_foods_version', FOOD_DB_VERSION);
+      localStorage.removeItem('nutriplan_foods');
+      console.log(`[NutriPlan] 食物資料庫升級至 v${FOOD_DB_VERSION}`);
+      return INITIAL_FOODS;
+    }
+
     return saved ? JSON.parse(saved) : INITIAL_FOODS;
   });
 

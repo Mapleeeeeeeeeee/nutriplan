@@ -1,15 +1,18 @@
+import { FatLevel } from './constants/exchangeConstants';
 
 export type FoodCategory = 'staple' | 'meat' | 'vegetable' | 'fruit' | 'dairy' | 'fat' | 'other';
 
 export interface FoodItem {
   id: string;
   name: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  unit: string;
+  portionSize: number;        // 每份幾克/ml
+  portionUnit: string;        // "g" | "ml" | "顆" | "片"
+  caloriesPerPortion: number; // 每份熱量 (大卡)
+  proteinPerPortion: number;  // 每份蛋白質 (公克)
+  carbsPerPortion: number;    // 每份醣類 (公克)
+  fatPerPortion: number;      // 每份脂肪 (公克)
   category: FoodCategory;
+  fatLevel?: FatLevel;        // 肉類/乳品的脂肪等級
 }
 
 export type CookingMethod = 'original' | 'boiled' | 'stir_fried' | 'pan_fried' | 'deep_fried';

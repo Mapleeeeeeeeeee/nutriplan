@@ -43,7 +43,7 @@ const ChoiceOptionCard: React.FC<ChoiceOptionCardProps> = ({
         const food = getFood(entry.foodId);
         if (!food) return sum;
         const modifier = COOKING_MODIFIERS[entry.cookingMethod];
-        return sum + (food.calories + modifier.cal) * entry.amount;
+        return sum + (food.caloriesPerPortion + modifier.cal) * entry.amount;
     }, 0);
 
     return (

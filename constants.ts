@@ -1,37 +1,192 @@
 
 import { FoodItem, DailyItems, CookingMethod, MealTemplate, FoodCategory } from './types';
+import {
+  DAIRY_EXCHANGE,
+  MEAT_EXCHANGE,
+  STAPLE_EXCHANGE,
+  VEGETABLE_EXCHANGE,
+  FRUIT_EXCHANGE,
+  FAT_EXCHANGE,
+  getExchangeValue
+} from './constants/exchangeConstants';
 
+/**
+ * 初始食物資料庫
+ * 依據衛生福利部國民健康署 2019.5 版「食物代換表」
+ */
 export const INITIAL_FOODS: FoodItem[] = [
-  // 澱粉
-  { id: '1', name: '白飯', calories: 130, protein: 2.7, carbs: 28, fat: 0.3, unit: '100g', category: 'staple' },
-  { id: '11', name: '糙米飯', calories: 112, protein: 2.6, carbs: 23, fat: 1, unit: '100g', category: 'staple' },
-  { id: '10', name: '地瓜', calories: 86, protein: 1.6, carbs: 20, fat: 0.1, unit: '100g', category: 'staple' },
-  { id: '12', name: '馬鈴薯', calories: 77, protein: 2, carbs: 17, fat: 0.1, unit: '100g', category: 'staple' },
-  { id: '6', name: '燕麥片', calories: 389, protein: 16.9, carbs: 66, fat: 6.9, unit: '100g', category: 'staple' },
-  { id: '13', name: '吐司', calories: 145, protein: 4.5, carbs: 27, fat: 2, unit: '1片', category: 'staple' },
+  // ============= 乳品類 =============
+  // 1份 = 240ml
+  {
+    id: 'dairy-full-1', name: '全脂鮮乳', portionSize: 240, portionUnit: 'ml',
+    caloriesPerPortion: 150, proteinPerPortion: 8, carbsPerPortion: 12, fatPerPortion: 8,
+    category: 'dairy', fatLevel: 'full'
+  },
+  {
+    id: 'dairy-low-1', name: '低脂鮮乳', portionSize: 240, portionUnit: 'ml',
+    caloriesPerPortion: 120, proteinPerPortion: 8, carbsPerPortion: 12, fatPerPortion: 4,
+    category: 'dairy', fatLevel: 'low'
+  },
+  {
+    id: 'dairy-skim-1', name: '脫脂鮮乳', portionSize: 240, portionUnit: 'ml',
+    caloriesPerPortion: 80, proteinPerPortion: 8, carbsPerPortion: 12, fatPerPortion: 0,
+    category: 'dairy', fatLevel: 'skim'
+  },
+  {
+    id: 'dairy-low-2', name: '無糖優格', portionSize: 210, portionUnit: 'g',
+    caloriesPerPortion: 120, proteinPerPortion: 8, carbsPerPortion: 12, fatPerPortion: 4,
+    category: 'dairy', fatLevel: 'low'
+  },
 
-  // 蛋白質 (豆魚蛋肉) & 乳品
-  { id: '2', name: '雞胸肉', calories: 104, protein: 22, carbs: 0, fat: 0.9, unit: '100g', category: 'meat' },
-  { id: '9', name: '鮭魚', calories: 160, protein: 20, carbs: 0, fat: 8, unit: '100g', category: 'meat' },
-  { id: '4', name: '雞蛋', calories: 75, protein: 7, carbs: 0.5, fat: 5, unit: '1顆', category: 'meat' },
-  { id: '14', name: '板豆腐', calories: 85, protein: 8.5, carbs: 1.5, fat: 3.5, unit: '100g', category: 'meat' },
-  { id: '15', name: '無糖豆漿', calories: 35, protein: 3.6, carbs: 0.7, fat: 1.9, unit: '100ml', category: 'meat' },
-  { id: '17', name: '豬里肌', calories: 180, protein: 22, carbs: 0, fat: 10, unit: '100g', category: 'meat' },
-  { id: '16', name: '無糖優格', calories: 60, protein: 3.5, carbs: 4.5, fat: 3.2, unit: '100g', category: 'dairy' },
-  { id: '7', name: '鮮乳', calories: 60, protein: 3, carbs: 5, fat: 3.5, unit: '100ml', category: 'dairy' },
+  // ============= 豆魚蛋肉類 - 低脂 =============
+  // 1份 = 35g (雞胸肉) / 30g (魚肉)
+  {
+    id: 'meat-low-1', name: '雞胸肉', portionSize: 35, portionUnit: 'g',
+    caloriesPerPortion: 55, proteinPerPortion: 7, carbsPerPortion: 0, fatPerPortion: 3,
+    category: 'meat', fatLevel: 'low'
+  },
+  {
+    id: 'meat-low-2', name: '魚肉(白身)', portionSize: 35, portionUnit: 'g',
+    caloriesPerPortion: 55, proteinPerPortion: 7, carbsPerPortion: 0, fatPerPortion: 3,
+    category: 'meat', fatLevel: 'low'
+  },
+  {
+    id: 'meat-low-3', name: '板豆腐', portionSize: 80, portionUnit: 'g',
+    caloriesPerPortion: 55, proteinPerPortion: 7, carbsPerPortion: 0, fatPerPortion: 3,
+    category: 'meat', fatLevel: 'low'
+  },
+  {
+    id: 'meat-low-4', name: '無糖豆漿', portionSize: 190, portionUnit: 'ml',
+    caloriesPerPortion: 55, proteinPerPortion: 7, carbsPerPortion: 0, fatPerPortion: 3,
+    category: 'meat', fatLevel: 'low'
+  },
 
-  // 蔬菜
-  { id: '3', name: '燙青菜', calories: 25, protein: 1.5, carbs: 4, fat: 0.2, unit: '100g', category: 'vegetable' },
-  { id: '18', name: '花椰菜', calories: 25, protein: 2, carbs: 5, fat: 0, unit: '100g', category: 'vegetable' },
-  { id: '19', name: '高麗菜', calories: 25, protein: 1.3, carbs: 5.8, fat: 0.2, unit: '100g', category: 'vegetable' },
+  // ============= 豆魚蛋肉類 - 中脂 =============
+  // 1份 = 55g (雞蛋)
+  {
+    id: 'meat-med-1', name: '雞蛋', portionSize: 55, portionUnit: 'g',
+    caloriesPerPortion: 75, proteinPerPortion: 7, carbsPerPortion: 0, fatPerPortion: 5,
+    category: 'meat', fatLevel: 'medium'
+  },
+  {
+    id: 'meat-med-2', name: '鮭魚', portionSize: 35, portionUnit: 'g',
+    caloriesPerPortion: 75, proteinPerPortion: 7, carbsPerPortion: 0, fatPerPortion: 5,
+    category: 'meat', fatLevel: 'medium'
+  },
+  {
+    id: 'meat-med-3', name: '豬里肌', portionSize: 35, portionUnit: 'g',
+    caloriesPerPortion: 75, proteinPerPortion: 7, carbsPerPortion: 0, fatPerPortion: 5,
+    category: 'meat', fatLevel: 'medium'
+  },
 
-  // 水果
-  { id: '5', name: '蘋果', calories: 52, protein: 0.3, carbs: 14, fat: 0.2, unit: '100g', category: 'fruit' },
-  { id: '20', name: '芭樂', calories: 38, protein: 0.8, carbs: 9, fat: 0.1, unit: '100g', category: 'fruit' },
-  { id: '21', name: '香蕉', calories: 89, protein: 1.1, carbs: 23, fat: 0.3, unit: '100g', category: 'fruit' },
+  // ============= 豆魚蛋肉類 - 高脂 =============
+  {
+    id: 'meat-high-1', name: '五花肉', portionSize: 35, portionUnit: 'g',
+    caloriesPerPortion: 120, proteinPerPortion: 7, carbsPerPortion: 0, fatPerPortion: 10,
+    category: 'meat', fatLevel: 'high'
+  },
+  {
+    id: 'meat-high-2', name: '秦孫香腸', portionSize: 40, portionUnit: 'g',
+    caloriesPerPortion: 120, proteinPerPortion: 7, carbsPerPortion: 0, fatPerPortion: 10,
+    category: 'meat', fatLevel: 'high'
+  },
 
-  // 油脂
-  { id: '8', name: '堅果', calories: 65, protein: 2, carbs: 2, fat: 6, unit: '10g', category: 'fat' },
+  // ============= 全穀雜糧類 =============
+  // 1份 = 40g 白飯 (1/4碗)
+  {
+    id: 'staple-1', name: '白飯', portionSize: 40, portionUnit: 'g',
+    caloriesPerPortion: 70, proteinPerPortion: 2, carbsPerPortion: 15, fatPerPortion: 0,
+    category: 'staple'
+  },
+  {
+    id: 'staple-2', name: '糙米飯', portionSize: 40, portionUnit: 'g',
+    caloriesPerPortion: 70, proteinPerPortion: 2, carbsPerPortion: 15, fatPerPortion: 0,
+    category: 'staple'
+  },
+  {
+    id: 'staple-3', name: '地瓜', portionSize: 55, portionUnit: 'g',
+    caloriesPerPortion: 70, proteinPerPortion: 2, carbsPerPortion: 15, fatPerPortion: 0,
+    category: 'staple'
+  },
+  {
+    id: 'staple-4', name: '馬鈴薯', portionSize: 90, portionUnit: 'g',
+    caloriesPerPortion: 70, proteinPerPortion: 2, carbsPerPortion: 15, fatPerPortion: 0,
+    category: 'staple'
+  },
+  {
+    id: 'staple-5', name: '燕麥片', portionSize: 20, portionUnit: 'g',
+    caloriesPerPortion: 70, proteinPerPortion: 2, carbsPerPortion: 15, fatPerPortion: 0,
+    category: 'staple'
+  },
+  {
+    id: 'staple-6', name: '吐司(薄片)', portionSize: 25, portionUnit: 'g',
+    caloriesPerPortion: 70, proteinPerPortion: 2, carbsPerPortion: 15, fatPerPortion: 0,
+    category: 'staple'
+  },
+
+  // ============= 蔬菜類 =============
+  // 1份 = 100g 熟菜
+  {
+    id: 'veg-1', name: '燙青菜', portionSize: 100, portionUnit: 'g',
+    caloriesPerPortion: 25, proteinPerPortion: 1, carbsPerPortion: 5, fatPerPortion: 0,
+    category: 'vegetable'
+  },
+  {
+    id: 'veg-2', name: '花椰菜', portionSize: 100, portionUnit: 'g',
+    caloriesPerPortion: 25, proteinPerPortion: 1, carbsPerPortion: 5, fatPerPortion: 0,
+    category: 'vegetable'
+  },
+  {
+    id: 'veg-3', name: '高麗菜', portionSize: 100, portionUnit: 'g',
+    caloriesPerPortion: 25, proteinPerPortion: 1, carbsPerPortion: 5, fatPerPortion: 0,
+    category: 'vegetable'
+  },
+  {
+    id: 'veg-4', name: '地瓜葉', portionSize: 100, portionUnit: 'g',
+    caloriesPerPortion: 25, proteinPerPortion: 1, carbsPerPortion: 5, fatPerPortion: 0,
+    category: 'vegetable'
+  },
+
+  // ============= 水果類 =============
+  // 1份 ≈ 100g
+  {
+    id: 'fruit-1', name: '蘋果', portionSize: 115, portionUnit: 'g',
+    caloriesPerPortion: 60, proteinPerPortion: 0, carbsPerPortion: 15, fatPerPortion: 0,
+    category: 'fruit'
+  },
+  {
+    id: 'fruit-2', name: '芭樂', portionSize: 155, portionUnit: 'g',
+    caloriesPerPortion: 60, proteinPerPortion: 0, carbsPerPortion: 15, fatPerPortion: 0,
+    category: 'fruit'
+  },
+  {
+    id: 'fruit-3', name: '香蕉', portionSize: 70, portionUnit: 'g',
+    caloriesPerPortion: 60, proteinPerPortion: 0, carbsPerPortion: 15, fatPerPortion: 0,
+    category: 'fruit'
+  },
+  {
+    id: 'fruit-4', name: '奇異果', portionSize: 105, portionUnit: 'g',
+    caloriesPerPortion: 60, proteinPerPortion: 0, carbsPerPortion: 15, fatPerPortion: 0,
+    category: 'fruit'
+  },
+
+  // ============= 油脂與堅果種子類 =============
+  // 1份 = 5g 油 or 10g 堅果
+  {
+    id: 'fat-1', name: '堅果(綜合)', portionSize: 10, portionUnit: 'g',
+    caloriesPerPortion: 45, proteinPerPortion: 0, carbsPerPortion: 0, fatPerPortion: 5,
+    category: 'fat'
+  },
+  {
+    id: 'fat-2', name: '橄欖油', portionSize: 5, portionUnit: 'ml',
+    caloriesPerPortion: 45, proteinPerPortion: 0, carbsPerPortion: 0, fatPerPortion: 5,
+    category: 'fat'
+  },
+  {
+    id: 'fat-3', name: '花生', portionSize: 13, portionUnit: 'g',
+    caloriesPerPortion: 45, proteinPerPortion: 0, carbsPerPortion: 0, fatPerPortion: 5,
+    category: 'fat'
+  },
 ];
 
 export const COOKING_MODIFIERS: Record<CookingMethod, { name: string, cal: number, fat: number }> = {
@@ -79,13 +234,24 @@ export const MEAL_LABELS: Record<string, string> = {
   snack: '點心'
 };
 
-// Standard Exchange Values (Approximate averages for estimation)
+// 重新導出 exchangeConstants 的內容供其他模組使用
+export {
+  DAIRY_EXCHANGE,
+  MEAT_EXCHANGE,
+  STAPLE_EXCHANGE,
+  VEGETABLE_EXCHANGE,
+  FRUIT_EXCHANGE,
+  FAT_EXCHANGE,
+  getExchangeValue
+} from './constants/exchangeConstants';
+
+// 保留舊版 EXCHANGE_STANDARDS 以保持向後兼容
 export const EXCHANGE_STANDARDS: Record<FoodCategory, { cal: number, p: number, c: number, f: number }> = {
   staple: { cal: 70, p: 2, c: 15, f: 0 },
-  meat: { cal: 75, p: 7, c: 0, f: 5 },      // Medium fat meat average
+  meat: { cal: 75, p: 7, c: 0, f: 5 },      // 中脂平均值
   vegetable: { cal: 25, p: 1, c: 5, f: 0 },
   fruit: { cal: 60, p: 0, c: 15, f: 0 },
-  dairy: { cal: 120, p: 8, c: 12, f: 4 },   // Low fat milk average
+  dairy: { cal: 120, p: 8, c: 12, f: 4 },   // 低脂平均值
   fat: { cal: 45, p: 0, c: 0, f: 5 },
   other: { cal: 0, p: 0, c: 0, f: 0 }
 };
@@ -98,18 +264,18 @@ export const MEAL_TEMPLATES: MealTemplate[] = [
     macroRatio: { protein: 25, carbs: 45, fat: 30 },
     items: [
       // 早餐: 地瓜+蛋+牛奶
-      { meal: 'breakfast', foodId: '10', amount: 1.5, method: 'boiled', portionDesc: '1.5 份全穀', customName: '蒸地瓜' },
-      { meal: 'breakfast', foodId: '4', amount: 1, method: 'boiled', portionDesc: '1 份肉類', customName: '水煮蛋' },
-      { meal: 'breakfast', foodId: '7', amount: 2.4, method: 'original', portionDesc: '1 份乳品', customName: '低脂鮮乳' },
+      { meal: 'breakfast', foodId: 'staple-3', amount: 1.5, method: 'boiled', portionDesc: '1.5 份全穀', customName: '蒸地瓜' },
+      { meal: 'breakfast', foodId: 'meat-med-1', amount: 1, method: 'boiled', portionDesc: '1 份肉類', customName: '水煮蛋' },
+      { meal: 'breakfast', foodId: 'dairy-low-1', amount: 1, method: 'original', portionDesc: '1 份乳品', customName: '低脂鮮乳' },
       // 午餐: 飯+雞胸+菜
-      { meal: 'lunch', foodId: '1', amount: 1, method: 'boiled', portionDesc: '1 份全穀', customName: '白飯' },
-      { meal: 'lunch', foodId: '2', amount: 2, method: 'pan_fried', portionDesc: '2 份肉類', customName: '乾煎雞胸' },
-      { meal: 'lunch', foodId: '3', amount: 1.5, method: 'stir_fried', portionDesc: '1.5 份蔬菜', customName: '炒青菜' },
+      { meal: 'lunch', foodId: 'staple-1', amount: 1, method: 'boiled', portionDesc: '1 份全穀', customName: '白飯' },
+      { meal: 'lunch', foodId: 'meat-low-1', amount: 2, method: 'pan_fried', portionDesc: '2 份肉類', customName: '乾煎雞胸' },
+      { meal: 'lunch', foodId: 'veg-1', amount: 1.5, method: 'stir_fried', portionDesc: '1.5 份蔬菜', customName: '炒青菜' },
       // 晚餐: 飯+魚+菜+果
-      { meal: 'dinner', foodId: '1', amount: 0.5, method: 'boiled', portionDesc: '0.5 份全穀', customName: '半碗飯' },
-      { meal: 'dinner', foodId: '9', amount: 1.5, method: 'boiled', portionDesc: '1.5 份肉類', customName: '清蒸魚片' },
-      { meal: 'dinner', foodId: '3', amount: 1.5, method: 'boiled', portionDesc: '1.5 份蔬菜', customName: '燙青菜' },
-      { meal: 'dinner', foodId: '5', amount: 1, method: 'original', portionDesc: '1 份水果', customName: '蘋果' }
+      { meal: 'dinner', foodId: 'staple-1', amount: 0.5, method: 'boiled', portionDesc: '0.5 份全穀', customName: '半碗飯' },
+      { meal: 'dinner', foodId: 'meat-med-2', amount: 1.5, method: 'boiled', portionDesc: '1.5 份肉類', customName: '清蒸魚片' },
+      { meal: 'dinner', foodId: 'veg-1', amount: 1.5, method: 'boiled', portionDesc: '1.5 份蔬菜', customName: '燙青菜' },
+      { meal: 'dinner', foodId: 'fruit-1', amount: 1, method: 'original', portionDesc: '1 份水果', customName: '蘋果' }
     ]
   },
   {
@@ -119,18 +285,18 @@ export const MEAL_TEMPLATES: MealTemplate[] = [
     macroRatio: { protein: 30, carbs: 40, fat: 30 }, // 增肌：高蛋白
     items: [
       // 早餐
-      { meal: 'breakfast', foodId: '6', amount: 2, method: 'boiled', portionDesc: '2 份全穀', customName: '燕麥粥' },
-      { meal: 'breakfast', foodId: '4', amount: 2, method: 'boiled', portionDesc: '2 份肉類', customName: '水煮蛋兩顆' },
-      { meal: 'breakfast', foodId: '7', amount: 2.4, method: 'original', portionDesc: '1 份乳品', customName: '全脂鮮乳' },
+      { meal: 'breakfast', foodId: 'staple-5', amount: 2, method: 'boiled', portionDesc: '2 份全穀', customName: '燕麥粥' },
+      { meal: 'breakfast', foodId: 'meat-med-1', amount: 2, method: 'boiled', portionDesc: '2 份肉類', customName: '水煮蛋兩顆' },
+      { meal: 'breakfast', foodId: 'dairy-full-1', amount: 1, method: 'original', portionDesc: '1 份乳品', customName: '全脂鮮乳' },
       // 午餐
-      { meal: 'lunch', foodId: '1', amount: 1.5, method: 'boiled', portionDesc: '1.5 份全穀', customName: '白飯' },
-      { meal: 'lunch', foodId: '2', amount: 3, method: 'pan_fried', portionDesc: '3 份肉類', customName: '香料雞胸' },
-      { meal: 'lunch', foodId: '3', amount: 2, method: 'stir_fried', portionDesc: '2 份蔬菜', customName: '炒時蔬' },
-      { meal: 'lunch', foodId: '8', amount: 1, method: 'original', portionDesc: '1 份油脂', customName: '堅果' },
+      { meal: 'lunch', foodId: 'staple-1', amount: 1.5, method: 'boiled', portionDesc: '1.5 份全穀', customName: '白飯' },
+      { meal: 'lunch', foodId: 'meat-low-1', amount: 3, method: 'pan_fried', portionDesc: '3 份肉類', customName: '香料雞胸' },
+      { meal: 'lunch', foodId: 'veg-1', amount: 2, method: 'stir_fried', portionDesc: '2 份蔬菜', customName: '炒時蔬' },
+      { meal: 'lunch', foodId: 'fat-1', amount: 1, method: 'original', portionDesc: '1 份油脂', customName: '堅果' },
       // 晚餐
-      { meal: 'dinner', foodId: '10', amount: 2, method: 'boiled', portionDesc: '2 份全穀', customName: '烤地瓜' },
-      { meal: 'dinner', foodId: '9', amount: 3, method: 'pan_fried', portionDesc: '3 份肉類', customName: '煎鮭魚排' },
-      { meal: 'dinner', foodId: '3', amount: 2, method: 'boiled', portionDesc: '2 份蔬菜', customName: '溫沙拉' }
+      { meal: 'dinner', foodId: 'staple-3', amount: 2, method: 'boiled', portionDesc: '2 份全穀', customName: '烤地瓜' },
+      { meal: 'dinner', foodId: 'meat-med-2', amount: 3, method: 'pan_fried', portionDesc: '3 份肉類', customName: '煎鮭魚排' },
+      { meal: 'dinner', foodId: 'veg-1', amount: 2, method: 'boiled', portionDesc: '2 份蔬菜', customName: '溫沙拉' }
     ]
   },
   {
@@ -140,17 +306,17 @@ export const MEAL_TEMPLATES: MealTemplate[] = [
     macroRatio: { protein: 20, carbs: 45, fat: 35 }, // 控糖：較低碳水
     items: [
       // 早餐
-      { meal: 'breakfast', foodId: '6', amount: 1.5, method: 'boiled', portionDesc: '1.5 份全穀', customName: '燕麥片' },
-      { meal: 'breakfast', foodId: '7', amount: 2.4, method: 'original', portionDesc: '1 份乳品', customName: '無糖豆漿(替)' },
+      { meal: 'breakfast', foodId: 'staple-5', amount: 1.5, method: 'boiled', portionDesc: '1.5 份全穀', customName: '燕麥片' },
+      { meal: 'breakfast', foodId: 'meat-low-4', amount: 1, method: 'original', portionDesc: '1 份肉類', customName: '無糖豆漿' },
       // 午餐
-      { meal: 'lunch', foodId: '10', amount: 1, method: 'boiled', portionDesc: '1 份全穀', customName: '蒸地瓜 (帶皮)' },
-      { meal: 'lunch', foodId: '2', amount: 2, method: 'boiled', portionDesc: '2 份肉類', customName: '蔥油雞' },
-      { meal: 'lunch', foodId: '3', amount: 2, method: 'stir_fried', portionDesc: '2 份蔬菜', customName: '炒深色蔬菜' },
+      { meal: 'lunch', foodId: 'staple-3', amount: 1, method: 'boiled', portionDesc: '1 份全穀', customName: '蒸地瓜 (帶皮)' },
+      { meal: 'lunch', foodId: 'meat-low-1', amount: 2, method: 'boiled', portionDesc: '2 份肉類', customName: '蔥油雞' },
+      { meal: 'lunch', foodId: 'veg-1', amount: 2, method: 'stir_fried', portionDesc: '2 份蔬菜', customName: '炒深色蔬菜' },
       // 晚餐
-      { meal: 'dinner', foodId: '1', amount: 0.8, method: 'boiled', portionDesc: '0.8 份全穀', customName: '五穀飯' },
-      { meal: 'dinner', foodId: '9', amount: 2, method: 'boiled', portionDesc: '2 份肉類', customName: '清蒸鱸魚' },
-      { meal: 'dinner', foodId: '3', amount: 2, method: 'boiled', portionDesc: '2 份蔬菜', customName: '燙地瓜葉' },
-      { meal: 'dinner', foodId: '5', amount: 1, method: 'original', portionDesc: '1 份水果', customName: '芭樂' }
+      { meal: 'dinner', foodId: 'staple-2', amount: 0.8, method: 'boiled', portionDesc: '0.8 份全穀', customName: '五穀飯' },
+      { meal: 'dinner', foodId: 'meat-low-2', amount: 2, method: 'boiled', portionDesc: '2 份肉類', customName: '清蒸鱸魚' },
+      { meal: 'dinner', foodId: 'veg-4', amount: 2, method: 'boiled', portionDesc: '2 份蔬菜', customName: '燙地瓜葉' },
+      { meal: 'dinner', foodId: 'fruit-2', amount: 1, method: 'original', portionDesc: '1 份水果', customName: '芭樂' }
     ]
   }
 ];

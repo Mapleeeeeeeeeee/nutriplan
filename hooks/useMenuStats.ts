@@ -21,10 +21,11 @@ const calculateEntryStats = (
         const food = getFood(entry.foodId);
         if (food) {
             const mod = COOKING_MODIFIERS[entry.cookingMethod];
-            totals.calories += (food.calories + mod.cal) * entry.amount;
-            totals.protein += food.protein * entry.amount;
-            totals.carbs += food.carbs * entry.amount;
-            totals.fat += (food.fat + mod.fat) * entry.amount;
+            // 使用新的 per-portion 格式
+            totals.calories += (food.caloriesPerPortion + mod.cal) * entry.amount;
+            totals.protein += food.proteinPerPortion * entry.amount;
+            totals.carbs += food.carbsPerPortion * entry.amount;
+            totals.fat += (food.fatPerPortion + mod.fat) * entry.amount;
             portions[food.category] += (entry.portionValue || entry.amount);
         }
     });

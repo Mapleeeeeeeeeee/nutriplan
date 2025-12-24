@@ -51,7 +51,7 @@ const MenuEntryCard: React.FC<MenuEntryCardProps> = ({
                 <div className="flex items-center gap-3 text-[10px] text-slate-400 px-2 mt-1">
                     <span className="italic opacity-60">{COOKING_MODIFIERS[entry.cookingMethod].name}</span>
                     <span className="font-medium text-emerald-600/60">
-                        {((food.calories + COOKING_MODIFIERS[entry.cookingMethod].cal) * entry.amount).toFixed(0)} kcal
+                        {((food.caloriesPerPortion + COOKING_MODIFIERS[entry.cookingMethod].cal) * entry.amount).toFixed(0)} kcal
                     </span>
                 </div>
             </div>

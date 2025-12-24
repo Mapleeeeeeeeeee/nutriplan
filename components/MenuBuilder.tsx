@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { FoodItem, MenuPlan, MealType, MenuEntry, CookingMethod, DailyItems, MealTemplate } from '../types';
+import { FoodItem, MenuPlan, MealType, MenuEntry, CookingMethod, DailyItems, MealTemplate, MealChoiceOption, MealData } from '../types';
 import { CATEGORY_LABELS } from '../constants';
 import NutritionChart from './NutritionChart';
 import Sidebar from './Sidebar/Sidebar';
@@ -24,6 +24,17 @@ interface MenuBuilderProps {
   onSaveMenu: (plan: MenuPlan) => void;
 }
 
+// 創建空的 MealData
+const createEmptyMealData = (): MealData => ({ entries: [] });
+
+// 創建空的 DailyItems
+const createEmptyDay = (): DailyItems => ({
+  breakfast: createEmptyMealData(),
+  lunch: createEmptyMealData(),
+  dinner: createEmptyMealData(),
+  snack: createEmptyMealData()
+});
+
 const MenuBuilder: React.FC<MenuBuilderProps> = ({ foods, templates, onAddTemplate, onDeleteTemplate, onSaveMenu }) => {
   const [currentPlan, setCurrentPlan] = useState<MenuPlan>({
     id: '',
@@ -34,9 +45,12 @@ const MenuBuilder: React.FC<MenuBuilderProps> = ({ foods, templates, onAddTempla
     macroRatio: { protein: 20, carbs: 50, fat: 30 },
     targetPortions: { staple: 3, meat: 5, vegetable: 3, fruit: 2, dairy: 1, fat: 3, other: 0 },
     createdAt: Date.now(),
-    days: [{ breakfast: [], lunch: [], dinner: [], snack: [] }],
+    days: [createEmptyDay()],
     notes: ['']
   });
+
+  // ABC 選擇模式狀態
+  const [activeChoiceOption, setActiveChoiceOption] = useState<{ meal: MealType; optionId: string } | null>(null);
 
   const [activeDayIndex, setActiveDayIndex] = useState(0);
   const { showToast, toastMsg, triggerToast } = useToast();
@@ -67,8 +81,33 @@ const MenuBuilder: React.FC<MenuBuilderProps> = ({ foods, templates, onAddTempla
       portionDescription: portionDesc.includes('份') ? portionDesc : `${portionDesc} 份${food ? CATEGORY_LABELS[food.category] : ''}`,
       portionValue: parseFloat(portionDesc) || amount
     };
+
     const newDays = [...currentPlan.days];
-    newDays[activeDayIndex] = { ...newDays[activeDayIndex], [meal]: [...newDays[activeDayIndex][meal], newEntry] };
+    const mealData = newDays[activeDayIndex][meal];
+
+    // 檢查是否為選擇模式且有選中的選項
+    if (mealData.choice?.enabled && activeChoiceOption?.meal === meal && activeChoiceOption.optionId) {
+      // 添加到選中的選項
+      const updatedChoice = {
+        ...mealData.choice,
+        options: mealData.choice.options.map(opt =>
+          opt.id === activeChoiceOption.optionId
+            ? { ...opt, entries: [...opt.entries, newEntry] }
+            : opt
+        )
+      };
+      newDays[activeDayIndex] = {
+        ...newDays[activeDayIndex],
+        [meal]: { ...mealData, choice: updatedChoice }
+      };
+    } else {
+      // 單一模式：添加到 entries
+      newDays[activeDayIndex] = {
+        ...newDays[activeDayIndex],
+        [meal]: { ...mealData, entries: [...mealData.entries, newEntry] }
+      };
+    }
+
     setCurrentPlan(prev => ({ ...prev, days: newDays }));
   };
 
@@ -83,7 +122,9 @@ const MenuBuilder: React.FC<MenuBuilderProps> = ({ foods, templates, onAddTempla
     const items: any[] = [];
 
     (Object.keys(currentDay) as MealType[]).forEach(meal => {
-      currentDay[meal].forEach(entry => {
+      const mealData = currentDay[meal];
+      // 單一模式
+      mealData.entries.forEach(entry => {
         items.push({
           meal,
           foodId: entry.foodId,
@@ -109,10 +150,10 @@ const MenuBuilder: React.FC<MenuBuilderProps> = ({ foods, templates, onAddTempla
 
   const handleApplyTemplate = (tpl: MealTemplate) => {
     const newDayMeals: DailyItems = {
-      breakfast: [],
-      lunch: [],
-      dinner: [],
-      snack: []
+      breakfast: { entries: [] },
+      lunch: { entries: [] },
+      dinner: { entries: [] },
+      snack: { entries: [] }
     };
 
     tpl.items.forEach((item: any) => {
@@ -128,7 +169,7 @@ const MenuBuilder: React.FC<MenuBuilderProps> = ({ foods, templates, onAddTempla
       };
 
       if (newDayMeals[mealKey]) {
-        newDayMeals[mealKey].push(entry);
+        newDayMeals[mealKey].entries.push(entry);
       }
     });
 
@@ -232,30 +273,223 @@ const MenuBuilder: React.FC<MenuBuilderProps> = ({ foods, templates, onAddTempla
 
   const removeEntry = (meal: MealType, entryId: string) => {
     const newDays = [...currentPlan.days];
-    newDays[activeDayIndex] = { ...newDays[activeDayIndex], [meal]: newDays[activeDayIndex][meal].filter(e => e.id !== entryId) };
+    const mealData = newDays[activeDayIndex][meal];
+    newDays[activeDayIndex] = {
+      ...newDays[activeDayIndex],
+      [meal]: { ...mealData, entries: mealData.entries.filter(e => e.id !== entryId) }
+    };
     setCurrentPlan(prev => ({ ...prev, days: newDays }));
   };
 
   const updateEntryField = (meal: MealType, entryId: string, field: keyof MenuEntry, value: string) => {
     const newDays = [...currentPlan.days];
+    const mealData = newDays[activeDayIndex][meal];
+
+    const updatedEntries = mealData.entries.map(e => {
+      if (e.id === entryId) {
+        const updatedEntry = { ...e, [field]: value };
+        if (field === 'portionDescription') {
+          const parsed = parseFloat(value);
+          if (!isNaN(parsed)) {
+            updatedEntry.portionValue = parsed;
+          }
+        }
+        return updatedEntry;
+      }
+      return e;
+    });
+
     newDays[activeDayIndex] = {
       ...newDays[activeDayIndex],
-      [meal]: newDays[activeDayIndex][meal].map(e => {
-        if (e.id === entryId) {
-          const updatedEntry = { ...e, [field]: value };
-
-          if (field === 'portionDescription') {
-            const parsed = parseFloat(value);
-            if (!isNaN(parsed)) {
-              updatedEntry.portionValue = parsed;
-            }
-          }
-          return updatedEntry;
-        }
-        return e;
-      })
+      [meal]: { ...mealData, entries: updatedEntries }
     };
     setCurrentPlan(prev => ({ ...prev, days: newDays }));
+  };
+
+  // ============= ABC 選擇模式 Handlers =============
+
+  const toggleChoiceMode = (meal: MealType) => {
+    const newDays = [...currentPlan.days];
+    const mealData = newDays[activeDayIndex][meal];
+    const currentChoice = mealData.choice || { enabled: false, options: [] };
+
+    // 切換模式
+    const newEnabled = !currentChoice.enabled;
+    let newOptions = currentChoice.options;
+
+    // 如果啟用選擇模式且沒有選項，自動創建一個
+    if (newEnabled && newOptions.length === 0) {
+      newOptions = [{
+        id: Math.random().toString(36).substr(2, 9),
+        label: '選項 A',
+        entries: []
+      }];
+    }
+
+    newDays[activeDayIndex] = {
+      ...newDays[activeDayIndex],
+      [meal]: {
+        ...mealData,
+        choice: { enabled: newEnabled, options: newOptions }
+      }
+    };
+
+    // 如果啟用選擇模式，自動選中第一個選項
+    if (newEnabled && newOptions.length > 0) {
+      setActiveChoiceOption({ meal, optionId: newOptions[0].id });
+    } else {
+      setActiveChoiceOption(null);
+    }
+
+    setCurrentPlan(prev => ({ ...prev, days: newDays }));
+  };
+
+  const addChoiceOption = (meal: MealType) => {
+    const newDays = [...currentPlan.days];
+    const mealData = newDays[activeDayIndex][meal];
+    const currentChoice = mealData.choice || { enabled: true, options: [] };
+
+    const optionCount = currentChoice.options.length;
+    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+    const newOption: MealChoiceOption = {
+      id: Math.random().toString(36).substr(2, 9),
+      label: `選項 ${letters[optionCount] || optionCount + 1}`,
+      entries: []
+    };
+
+    newDays[activeDayIndex] = {
+      ...newDays[activeDayIndex],
+      [meal]: {
+        ...mealData,
+        choice: {
+          ...currentChoice,
+          options: [...currentChoice.options, newOption]
+        }
+      }
+    };
+
+    // 自動選中新增的選項
+    setActiveChoiceOption({ meal, optionId: newOption.id });
+    setCurrentPlan(prev => ({ ...prev, days: newDays }));
+  };
+
+  const updateChoiceOption = (meal: MealType, optionId: string, updates: Partial<MealChoiceOption>) => {
+    const newDays = [...currentPlan.days];
+    const mealData = newDays[activeDayIndex][meal];
+    if (!mealData.choice) return;
+
+    newDays[activeDayIndex] = {
+      ...newDays[activeDayIndex],
+      [meal]: {
+        ...mealData,
+        choice: {
+          ...mealData.choice,
+          options: mealData.choice.options.map(opt =>
+            opt.id === optionId ? { ...opt, ...updates } : opt
+          )
+        }
+      }
+    };
+    setCurrentPlan(prev => ({ ...prev, days: newDays }));
+  };
+
+  const removeChoiceOption = (meal: MealType, optionId: string) => {
+    const newDays = [...currentPlan.days];
+    const mealData = newDays[activeDayIndex][meal];
+    if (!mealData.choice) return;
+
+    const newOptions = mealData.choice.options.filter(opt => opt.id !== optionId);
+
+    newDays[activeDayIndex] = {
+      ...newDays[activeDayIndex],
+      [meal]: {
+        ...mealData,
+        choice: {
+          ...mealData.choice,
+          options: newOptions
+        }
+      }
+    };
+
+    // 如果刪除的是當前選中的選項，選中第一個或清空
+    if (activeChoiceOption?.optionId === optionId) {
+      if (newOptions.length > 0) {
+        setActiveChoiceOption({ meal, optionId: newOptions[0].id });
+      } else {
+        setActiveChoiceOption(null);
+      }
+    }
+
+    setCurrentPlan(prev => ({ ...prev, days: newDays }));
+  };
+
+  const removeChoiceEntry = (meal: MealType, optionId: string, entryId: string) => {
+    const newDays = [...currentPlan.days];
+    const mealData = newDays[activeDayIndex][meal];
+    if (!mealData.choice) return;
+
+    newDays[activeDayIndex] = {
+      ...newDays[activeDayIndex],
+      [meal]: {
+        ...mealData,
+        choice: {
+          ...mealData.choice,
+          options: mealData.choice.options.map(opt =>
+            opt.id === optionId
+              ? { ...opt, entries: opt.entries.filter(e => e.id !== entryId) }
+              : opt
+          )
+        }
+      }
+    };
+    setCurrentPlan(prev => ({ ...prev, days: newDays }));
+  };
+
+  const updateChoiceEntryField = (
+    meal: MealType,
+    optionId: string,
+    entryId: string,
+    field: keyof MenuEntry,
+    value: string
+  ) => {
+    const newDays = [...currentPlan.days];
+    const mealData = newDays[activeDayIndex][meal];
+    if (!mealData.choice) return;
+
+    newDays[activeDayIndex] = {
+      ...newDays[activeDayIndex],
+      [meal]: {
+        ...mealData,
+        choice: {
+          ...mealData.choice,
+          options: mealData.choice.options.map(opt =>
+            opt.id === optionId
+              ? {
+                ...opt,
+                entries: opt.entries.map(e => {
+                  if (e.id === entryId) {
+                    const updatedEntry = { ...e, [field]: value };
+                    if (field === 'portionDescription') {
+                      const parsed = parseFloat(value);
+                      if (!isNaN(parsed)) {
+                        updatedEntry.portionValue = parsed;
+                      }
+                    }
+                    return updatedEntry;
+                  }
+                  return e;
+                })
+              }
+              : opt
+          )
+        }
+      }
+    };
+    setCurrentPlan(prev => ({ ...prev, days: newDays }));
+  };
+
+  const selectChoiceOption = (meal: MealType, optionId: string) => {
+    setActiveChoiceOption({ meal, optionId });
   };
 
   const updateNote = (dayIdx: number, text: string) => {
@@ -363,6 +597,14 @@ const MenuBuilder: React.FC<MenuBuilderProps> = ({ foods, templates, onAddTempla
                       onUpdateEntryField={updateEntryField}
                       onRemoveEntry={removeEntry}
                       onOpenSubPanel={openSubPanel}
+                      onToggleChoiceMode={toggleChoiceMode}
+                      onAddChoiceOption={addChoiceOption}
+                      onUpdateChoiceOption={updateChoiceOption}
+                      onRemoveChoiceOption={removeChoiceOption}
+                      onRemoveChoiceEntry={removeChoiceEntry}
+                      onUpdateChoiceEntryField={updateChoiceEntryField}
+                      activeChoiceOption={activeChoiceOption}
+                      onSelectChoiceOption={selectChoiceOption}
                     />
 
                     <div className="space-y-6">

@@ -13,7 +13,9 @@ export const useMenuStats = (currentPlan: MenuPlan, foods: FoodItem[]) => {
             };
 
             (Object.keys(day) as MealType[]).forEach(meal => {
-                day[meal].forEach(entry => {
+                const mealData = day[meal];
+                // 計算單一模式的 entries
+                mealData.entries.forEach(entry => {
                     const food = getFood(entry.foodId);
                     if (food) {
                         const mod = COOKING_MODIFIERS[entry.cookingMethod];
@@ -24,6 +26,21 @@ export const useMenuStats = (currentPlan: MenuPlan, foods: FoodItem[]) => {
                         portions[food.category] += (entry.portionValue || entry.amount);
                     }
                 });
+
+                // 如果有選擇模式，也計算第一個選項（用於預估熱量）
+                if (mealData.choice?.enabled && mealData.choice.options.length > 0) {
+                    mealData.choice.options[0].entries.forEach(entry => {
+                        const food = getFood(entry.foodId);
+                        if (food) {
+                            const mod = COOKING_MODIFIERS[entry.cookingMethod];
+                            totals.calories += (food.calories + mod.cal) * entry.amount;
+                            totals.protein += food.protein * entry.amount;
+                            totals.carbs += food.carbs * entry.amount;
+                            totals.fat += (food.fat + mod.fat) * entry.amount;
+                            portions[food.category] += (entry.portionValue || entry.amount);
+                        }
+                    });
+                }
             });
             return { totals, portions };
         });

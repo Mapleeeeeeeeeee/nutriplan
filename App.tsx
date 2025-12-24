@@ -9,6 +9,7 @@ import ConfirmModal from './components/ConfirmModal';
 
 // 食物資料庫版本號 - 每次結構變更時遞增以強制更新 localStorage
 const FOOD_DB_VERSION = '2.0.0'; // 2.0.0: 改用 per-portion 格式 + fatLevel
+const TEMPLATE_VERSION = '2.0.0'; // 2.0.0: 配合新 foodId 格式
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('builder');
@@ -29,7 +30,17 @@ const App: React.FC = () => {
   });
 
   const [templates, setTemplates] = useState<MealTemplate[]>(() => {
+    const savedVersion = localStorage.getItem('nutriplan_templates_version');
     const saved = localStorage.getItem('nutriplan_templates');
+
+    // 如果版本不符，使用新的 MEAL_TEMPLATES 並清除舊資料
+    if (savedVersion !== TEMPLATE_VERSION) {
+      localStorage.setItem('nutriplan_templates_version', TEMPLATE_VERSION);
+      localStorage.removeItem('nutriplan_templates');
+      console.log(`[NutriPlan] 快速腳本升級至 v${TEMPLATE_VERSION}`);
+      return MEAL_TEMPLATES;
+    }
+
     return saved ? JSON.parse(saved) : MEAL_TEMPLATES;
   });
 

@@ -354,6 +354,14 @@ const MenuBuilder: React.FC<MenuBuilderProps> = ({ foods, templates, onAddTempla
                           <NutritionChart totals={stats.dayStats[dayIdx].totals} />
                         </div>
                         <div className="grid grid-cols-1 gap-2 w-full mt-6">
+                          {/* 菜單總熱量 */}
+                          <div className="bg-orange-50 rounded-2xl p-3 border border-orange-200 flex justify-between items-center shadow-sm">
+                            <span className="text-[10px] font-bold text-orange-500">菜單熱量</span>
+                            <div className="text-right">
+                              <span className="font-black text-orange-600 block text-lg">{stats.dayStats[dayIdx].totals.calories.toFixed(0)}</span>
+                              <span className="text-[10px] text-gray-400">目標 {currentPlan.targetCalories} kcal</span>
+                            </div>
+                          </div>
                           <div className="bg-white rounded-2xl p-3 border border-gray-100 flex justify-between items-center shadow-sm">
                             <span className="text-[10px] font-bold text-gray-400">蛋白質</span>
                             <div className="text-right">

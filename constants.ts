@@ -262,16 +262,15 @@ export const MEAL_TEMPLATES: MealTemplate[] = [
     name: "1500卡 減脂全日餐",
     note: "【營養師叮嚀】\n1. 早餐的地瓜是優質澱粉，連皮吃纖維更多喔！\n2. 晚餐澱粉量減半，若會餓可以多吃一份蔬菜。\n3. 水分攝取目標：2000cc / 日。",
     macroRatio: { protein: 25, carbs: 45, fat: 30 },
+    targetPortions: { staple: 3, meat: 5, vegetable: 3, fruit: 1, dairy: 1, fat: 0, other: 0 },
+    detailedPortions: { meatLow: 3, meatMedium: 2, meatHigh: 0, dairyFull: 0, dairyLow: 1, dairySkim: 0 },
     items: [
-      // 早餐: 地瓜+蛋+牛奶
       { meal: 'breakfast', foodId: 'staple-3', amount: 1.5, method: 'boiled', portionDesc: '1.5 份全穀', customName: '蒸地瓜' },
       { meal: 'breakfast', foodId: 'meat-med-1', amount: 1, method: 'boiled', portionDesc: '1 份肉類', customName: '水煮蛋' },
       { meal: 'breakfast', foodId: 'dairy-low-1', amount: 1, method: 'original', portionDesc: '1 份乳品', customName: '低脂鮮乳' },
-      // 午餐: 飯+雞胸+菜
       { meal: 'lunch', foodId: 'staple-1', amount: 1, method: 'boiled', portionDesc: '1 份全穀', customName: '白飯' },
       { meal: 'lunch', foodId: 'meat-low-1', amount: 2, method: 'pan_fried', portionDesc: '2 份肉類', customName: '乾煎雞胸' },
       { meal: 'lunch', foodId: 'veg-1', amount: 1.5, method: 'stir_fried', portionDesc: '1.5 份蔬菜', customName: '炒青菜' },
-      // 晚餐: 飯+魚+菜+果
       { meal: 'dinner', foodId: 'staple-1', amount: 0.5, method: 'boiled', portionDesc: '0.5 份全穀', customName: '半碗飯' },
       { meal: 'dinner', foodId: 'meat-med-2', amount: 1.5, method: 'boiled', portionDesc: '1.5 份肉類', customName: '清蒸魚片' },
       { meal: 'dinner', foodId: 'veg-1', amount: 1.5, method: 'boiled', portionDesc: '1.5 份蔬菜', customName: '燙青菜' },
@@ -282,18 +281,17 @@ export const MEAL_TEMPLATES: MealTemplate[] = [
     id: 'default_2',
     name: "1800卡 增肌全日餐",
     note: "【營養師叮嚀】\n1. 訓練後的一餐特別重要，請確保蛋白質充足。\n2. 堅果含有優質油脂，但也別吃過量，一天一湯匙即可。\n3. 若訓練量大，可在餐間補充香蕉或豆漿。",
-    macroRatio: { protein: 30, carbs: 40, fat: 30 }, // 增肌：高蛋白
+    macroRatio: { protein: 30, carbs: 40, fat: 30 },
+    targetPortions: { staple: 5.5, meat: 8, vegetable: 4, fruit: 0, dairy: 1, fat: 1, other: 0 },
+    detailedPortions: { meatLow: 5, meatMedium: 3, meatHigh: 0, dairyFull: 1, dairyLow: 0, dairySkim: 0 },
     items: [
-      // 早餐
       { meal: 'breakfast', foodId: 'staple-5', amount: 2, method: 'boiled', portionDesc: '2 份全穀', customName: '燕麥粥' },
       { meal: 'breakfast', foodId: 'meat-med-1', amount: 2, method: 'boiled', portionDesc: '2 份肉類', customName: '水煮蛋兩顆' },
       { meal: 'breakfast', foodId: 'dairy-full-1', amount: 1, method: 'original', portionDesc: '1 份乳品', customName: '全脂鮮乳' },
-      // 午餐
       { meal: 'lunch', foodId: 'staple-1', amount: 1.5, method: 'boiled', portionDesc: '1.5 份全穀', customName: '白飯' },
       { meal: 'lunch', foodId: 'meat-low-1', amount: 3, method: 'pan_fried', portionDesc: '3 份肉類', customName: '香料雞胸' },
       { meal: 'lunch', foodId: 'veg-1', amount: 2, method: 'stir_fried', portionDesc: '2 份蔬菜', customName: '炒時蔬' },
       { meal: 'lunch', foodId: 'fat-1', amount: 1, method: 'original', portionDesc: '1 份油脂', customName: '堅果' },
-      // 晚餐
       { meal: 'dinner', foodId: 'staple-3', amount: 2, method: 'boiled', portionDesc: '2 份全穀', customName: '烤地瓜' },
       { meal: 'dinner', foodId: 'meat-med-2', amount: 3, method: 'pan_fried', portionDesc: '3 份肉類', customName: '煎鮭魚排' },
       { meal: 'dinner', foodId: 'veg-1', amount: 2, method: 'boiled', portionDesc: '2 份蔬菜', customName: '溫沙拉' }
@@ -303,16 +301,15 @@ export const MEAL_TEMPLATES: MealTemplate[] = [
     id: 'default_3',
     name: "糖尿病 控糖全日餐",
     note: "【營養師叮嚀】\n1. 進食順序建議：蔬菜 -> 蛋白質 -> 澱粉。\n2. 水果建議在兩餐之間食用，避免飯後血糖波動過大。\n3. 澱粉類多選擇未精緻全穀雜糧。",
-    macroRatio: { protein: 20, carbs: 45, fat: 35 }, // 控糖：較低碳水
+    macroRatio: { protein: 20, carbs: 45, fat: 35 },
+    targetPortions: { staple: 3.3, meat: 5, vegetable: 4, fruit: 1, dairy: 0, fat: 0, other: 0 },
+    detailedPortions: { meatLow: 5, meatMedium: 0, meatHigh: 0, dairyFull: 0, dairyLow: 0, dairySkim: 0 },
     items: [
-      // 早餐
       { meal: 'breakfast', foodId: 'staple-5', amount: 1.5, method: 'boiled', portionDesc: '1.5 份全穀', customName: '燕麥片' },
       { meal: 'breakfast', foodId: 'meat-low-4', amount: 1, method: 'original', portionDesc: '1 份肉類', customName: '無糖豆漿' },
-      // 午餐
       { meal: 'lunch', foodId: 'staple-3', amount: 1, method: 'boiled', portionDesc: '1 份全穀', customName: '蒸地瓜 (帶皮)' },
       { meal: 'lunch', foodId: 'meat-low-1', amount: 2, method: 'boiled', portionDesc: '2 份肉類', customName: '蔥油雞' },
       { meal: 'lunch', foodId: 'veg-1', amount: 2, method: 'stir_fried', portionDesc: '2 份蔬菜', customName: '炒深色蔬菜' },
-      // 晚餐
       { meal: 'dinner', foodId: 'staple-2', amount: 0.8, method: 'boiled', portionDesc: '0.8 份全穀', customName: '五穀飯' },
       { meal: 'dinner', foodId: 'meat-low-2', amount: 2, method: 'boiled', portionDesc: '2 份肉類', customName: '清蒸鱸魚' },
       { meal: 'dinner', foodId: 'veg-4', amount: 2, method: 'boiled', portionDesc: '2 份蔬菜', customName: '燙地瓜葉' },

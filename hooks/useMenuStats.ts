@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { MenuPlan, FoodItem, MealType, FoodCategory, MenuEntry } from '../types';
+import { MenuPlan, FoodItem, MealType, FoodCategory, MenuEntry, DetailedPortions } from '../types';
 import { COOKING_MODIFIERS } from '../constants';
 
 interface ActiveChoiceOption {
@@ -16,21 +16,37 @@ const calculateEntryStats = (
     let portions: Record<FoodCategory, number> = {
         staple: 0, meat: 0, vegetable: 0, fruit: 0, dairy: 0, fat: 0, other: 0
     };
+    // 細分的肉類/乳品份數
+    let detailedPortions: DetailedPortions = {
+        meatLow: 0, meatMedium: 0, meatHigh: 0,
+        dairyFull: 0, dairyLow: 0, dairySkim: 0
+    };
 
     entries.forEach(entry => {
         const food = getFood(entry.foodId);
         if (food) {
             const mod = COOKING_MODIFIERS[entry.cookingMethod];
-            // 使用新的 per-portion 格式
             totals.calories += (food.caloriesPerPortion + mod.cal) * entry.amount;
             totals.protein += food.proteinPerPortion * entry.amount;
             totals.carbs += food.carbsPerPortion * entry.amount;
             totals.fat += (food.fatPerPortion + mod.fat) * entry.amount;
             portions[food.category] += (entry.portionValue || entry.amount);
+
+            // 追蹤細分的肉類/乳品份數
+            if (food.category === 'meat' && food.fatLevel) {
+                if (food.fatLevel === 'low') detailedPortions.meatLow += entry.amount;
+                else if (food.fatLevel === 'medium') detailedPortions.meatMedium += entry.amount;
+                else if (food.fatLevel === 'high') detailedPortions.meatHigh += entry.amount;
+            }
+            if (food.category === 'dairy' && food.fatLevel) {
+                if (food.fatLevel === 'full') detailedPortions.dairyFull += entry.amount;
+                else if (food.fatLevel === 'low') detailedPortions.dairyLow += entry.amount;
+                else if (food.fatLevel === 'skim') detailedPortions.dairySkim += entry.amount;
+            }
         }
     });
 
-    return { totals, portions };
+    return { totals, portions, detailedPortions };
 };
 
 export const useMenuStats = (
@@ -46,28 +62,25 @@ export const useMenuStats = (
             let portions: Record<FoodCategory, number> = {
                 staple: 0, meat: 0, vegetable: 0, fruit: 0, dairy: 0, fat: 0, other: 0
             };
+            let detailedPortions: DetailedPortions = {
+                meatLow: 0, meatMedium: 0, meatHigh: 0,
+                dairyFull: 0, dairyLow: 0, dairySkim: 0
+            };
 
             (Object.keys(day) as MealType[]).forEach(meal => {
                 const mealData = day[meal];
-
-                // 判斷此餐是否為選擇模式
                 const isChoiceMode = mealData.choice?.enabled && mealData.choice.options.length > 0;
 
                 if (isChoiceMode && mealData.choice) {
-                    // 選擇模式：根據當前選中的選項計算
-                    let selectedOption = mealData.choice.options[0]; // 預設第一個
+                    let selectedOption = mealData.choice.options[0];
 
-                    // 如果有選中的選項且屬於這個餐
                     if (activeChoiceOption && activeChoiceOption.meal === meal) {
                         const found = mealData.choice.options.find(
                             opt => opt.id === activeChoiceOption.optionId
                         );
-                        if (found) {
-                            selectedOption = found;
-                        }
+                        if (found) selectedOption = found;
                     }
 
-                    // 計算選中選項的數據
                     const optionStats = calculateEntryStats(selectedOption.entries, getFood);
                     totals.calories += optionStats.totals.calories;
                     totals.protein += optionStats.totals.protein;
@@ -76,8 +89,11 @@ export const useMenuStats = (
                     Object.keys(optionStats.portions).forEach(key => {
                         portions[key as FoodCategory] += optionStats.portions[key as FoodCategory];
                     });
+                    // 累加細分份數
+                    Object.keys(optionStats.detailedPortions).forEach(key => {
+                        detailedPortions[key as keyof DetailedPortions] += optionStats.detailedPortions[key as keyof DetailedPortions];
+                    });
                 } else {
-                    // 單一模式：計算 entries
                     const entryStats = calculateEntryStats(mealData.entries, getFood);
                     totals.calories += entryStats.totals.calories;
                     totals.protein += entryStats.totals.protein;
@@ -86,9 +102,13 @@ export const useMenuStats = (
                     Object.keys(entryStats.portions).forEach(key => {
                         portions[key as FoodCategory] += entryStats.portions[key as FoodCategory];
                     });
+                    // 累加細分份數
+                    Object.keys(entryStats.detailedPortions).forEach(key => {
+                        detailedPortions[key as keyof DetailedPortions] += entryStats.detailedPortions[key as keyof DetailedPortions];
+                    });
                 }
             });
-            return { totals, portions };
+            return { totals, portions, detailedPortions };
         });
         return { dayStats };
     }, [currentPlan, foods, activeChoiceOption]);
@@ -104,3 +124,4 @@ export const useMenuStats = (
 
     return { stats, targetGrams };
 };
+

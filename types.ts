@@ -55,6 +55,24 @@ export type LegacyDailyItems = Record<MealType, MenuEntry[]>;
 
 export type PlanType = 'single' | 'cycle';
 
+// 細分的肉類和乳品份數
+export interface DetailedPortions {
+  meatLow: number;
+  meatMedium: number;
+  meatHigh: number;
+  dairyFull: number;
+  dairyLow: number;
+  dairySkim: number;
+}
+
+// 自訂每份營養值
+export interface CustomExchangeValues {
+  staple?: { protein: number; fat: number; carbs: number; calories: number };
+  vegetable?: { protein: number; fat: number; carbs: number; calories: number };
+  fruit?: { protein: number; fat: number; carbs: number; calories: number };
+  fat?: { protein: number; fat: number; carbs: number; calories: number };
+}
+
 export interface MenuPlan {
   id: string;
   name: string;
@@ -68,6 +86,10 @@ export interface MenuPlan {
     fat: number;
   };
   targetPortions: Record<FoodCategory, number>;
+  // 細分的肉類/乳品份數 (各脂肪等級)
+  detailedPortions?: DetailedPortions;
+  // 自訂營養值
+  customExchangeValues?: CustomExchangeValues;
   // Index 0 = Day 1, Index 1 = Day 2...
   days: DailyItems[];
   notes: string[]; // Chef's notes per day
@@ -92,6 +114,8 @@ export interface MealTemplate {
     carbs: number;
     fat: number;
   };
+  targetPortions?: Record<FoodCategory, number>;
+  detailedPortions?: DetailedPortions;
   items: MealTemplateItem[];
 }
 

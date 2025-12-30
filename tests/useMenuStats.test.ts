@@ -319,4 +319,168 @@ describe('useMenuStats', () => {
             expect(result.current.stats.dayStats[0].totals.calories).toBe(0);
         });
     });
+
+    // ============================================================================
+    // Test Case List: DetailedPortions Tracking
+    // ============================================================================
+    // TC-DETAILED-001: Should track meat portions by fat level separately
+    // TC-DETAILED-002: Should track dairy portions by fat level separately
+    // TC-DETAILED-003: Should return zero detailedPortions for empty plan
+    // ============================================================================
+
+    describe('DetailedPortions Tracking', () => {
+        const detailedMockFoods: FoodItem[] = [
+            ...mockFoods,
+            {
+                id: 'pork-belly',
+                name: '五花肉',
+                portionSize: 35,
+                portionUnit: 'g',
+                caloriesPerPortion: 120,
+                proteinPerPortion: 7,
+                carbsPerPortion: 0,
+                fatPerPortion: 10,
+                category: 'meat',
+                fatLevel: 'high',
+            },
+            {
+                id: 'egg',
+                name: '雞蛋',
+                portionSize: 55,
+                portionUnit: 'g',
+                caloriesPerPortion: 75,
+                proteinPerPortion: 7,
+                carbsPerPortion: 0,
+                fatPerPortion: 5,
+                category: 'meat',
+                fatLevel: 'medium',
+            },
+            {
+                id: 'low-fat-milk',
+                name: '低脂鮮乳',
+                portionSize: 240,
+                portionUnit: 'ml',
+                caloriesPerPortion: 120,
+                proteinPerPortion: 8,
+                carbsPerPortion: 12,
+                fatPerPortion: 4,
+                category: 'dairy',
+                fatLevel: 'low',
+            },
+            {
+                id: 'skim-milk',
+                name: '脫脂鮮乳',
+                portionSize: 240,
+                portionUnit: 'ml',
+                caloriesPerPortion: 80,
+                proteinPerPortion: 8,
+                carbsPerPortion: 12,
+                fatPerPortion: 0,
+                category: 'dairy',
+                fatLevel: 'skim',
+            },
+        ];
+
+        it('should_ReturnZeroDetailedPortions_When_PlanHasNoEntries', () => {
+            // Arrange
+            const plan = createBasicPlan();
+
+            // Act
+            const { result } = renderHook(() => useMenuStats(plan, detailedMockFoods));
+
+            // Assert
+            const detailedPortions = result.current.stats.dayStats[0].detailedPortions;
+            expect(detailedPortions.meatLow).toBe(0);
+            expect(detailedPortions.meatMedium).toBe(0);
+            expect(detailedPortions.meatHigh).toBe(0);
+            expect(detailedPortions.dairyFull).toBe(0);
+            expect(detailedPortions.dairyLow).toBe(0);
+            expect(detailedPortions.dairySkim).toBe(0);
+        });
+
+        it('should_TrackMeatPortions_ByFatLevel_Separately', () => {
+            // Arrange
+            const plan = createBasicPlan();
+            plan.days[0].breakfast.entries = [
+                {
+                    id: 'entry-1',
+                    foodId: 'chicken-breast', // low fat
+                    amount: 2,
+                    cookingMethod: 'original',
+                    portionDescription: '2 份',
+                    portionValue: 2,
+                },
+            ];
+            plan.days[0].lunch.entries = [
+                {
+                    id: 'entry-2',
+                    foodId: 'egg', // medium fat
+                    amount: 1,
+                    cookingMethod: 'original',
+                    portionDescription: '1 份',
+                    portionValue: 1,
+                },
+                {
+                    id: 'entry-3',
+                    foodId: 'pork-belly', // high fat
+                    amount: 1.5,
+                    cookingMethod: 'original',
+                    portionDescription: '1.5 份',
+                    portionValue: 1.5,
+                },
+            ];
+
+            // Act
+            const { result } = renderHook(() => useMenuStats(plan, detailedMockFoods));
+
+            // Assert
+            const detailedPortions = result.current.stats.dayStats[0].detailedPortions;
+            expect(detailedPortions.meatLow).toBe(2);
+            expect(detailedPortions.meatMedium).toBe(1);
+            expect(detailedPortions.meatHigh).toBe(1.5);
+        });
+
+        it('should_TrackDairyPortions_ByFatLevel_Separately', () => {
+            // Arrange
+            const plan = createBasicPlan();
+            plan.days[0].breakfast.entries = [
+                {
+                    id: 'entry-1',
+                    foodId: 'full-milk', // full fat
+                    amount: 1,
+                    cookingMethod: 'original',
+                    portionDescription: '1 份',
+                    portionValue: 1,
+                },
+            ];
+            plan.days[0].snack.entries = [
+                {
+                    id: 'entry-2',
+                    foodId: 'low-fat-milk', // low fat
+                    amount: 2,
+                    cookingMethod: 'original',
+                    portionDescription: '2 份',
+                    portionValue: 2,
+                },
+                {
+                    id: 'entry-3',
+                    foodId: 'skim-milk', // skim
+                    amount: 0.5,
+                    cookingMethod: 'original',
+                    portionDescription: '0.5 份',
+                    portionValue: 0.5,
+                },
+            ];
+
+            // Act
+            const { result } = renderHook(() => useMenuStats(plan, detailedMockFoods));
+
+            // Assert
+            const detailedPortions = result.current.stats.dayStats[0].detailedPortions;
+            expect(detailedPortions.dairyFull).toBe(1);
+            expect(detailedPortions.dairyLow).toBe(2);
+            expect(detailedPortions.dairySkim).toBe(0.5);
+        });
+    });
 });
+

@@ -94,6 +94,8 @@ const MenuBuilder: React.FC<MenuBuilderProps> = ({ foods, templates, onAddTempla
       name,
       note: currentPlan.notes[activeDayIndex] || '',
       macroRatio: { ...currentPlan.macroRatio },
+      targetPortions: { ...currentPlan.targetPortions },
+      detailedPortions: currentPlan.detailedPortions ? { ...currentPlan.detailedPortions } : undefined,
       items
     };
 
@@ -138,7 +140,9 @@ const MenuBuilder: React.FC<MenuBuilderProps> = ({ foods, templates, onAddTempla
       ...prev,
       days: newDays,
       notes: newNotes,
-      macroRatio: tpl.macroRatio || prev.macroRatio
+      macroRatio: tpl.macroRatio || prev.macroRatio,
+      targetPortions: tpl.targetPortions || prev.targetPortions,
+      detailedPortions: tpl.detailedPortions || prev.detailedPortions
     }));
 
     triggerToast(`已套用「${tpl.name}」`);

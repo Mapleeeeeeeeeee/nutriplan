@@ -238,6 +238,7 @@ export const useChoiceActions = ({
                                                 const parsed = parseFloat(value);
                                                 if (!isNaN(parsed)) {
                                                     updatedEntry.portionValue = parsed;
+                                                    updatedEntry.amount = parsed; // 同步更新 amount 以觸發熱量重新計算
                                                 }
                                             }
                                             return updatedEntry;

@@ -90,6 +90,12 @@ export interface MenuPlan {
   detailedPortions?: DetailedPortions;
   // 自訂營養值
   customExchangeValues?: CustomExchangeValues;
+  // 追蹤哪些份數被手動覆寫 (全穀/豆魚蛋肉/油脂)
+  manualPortionOverrides?: {
+    staple?: boolean;
+    meat?: boolean;
+    fat?: boolean;
+  };
   // Index 0 = Day 1, Index 1 = Day 2...
   days: DailyItems[];
   notes: string[]; // Chef's notes per day

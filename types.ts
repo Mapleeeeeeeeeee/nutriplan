@@ -25,6 +25,15 @@ export interface MenuEntry {
   customName?: string; // For Dish names like "Kung Pao Chicken"
   portionDescription?: string; // For "Exchange" description like "2份肉"
   portionValue?: number; // Numeric value for stats tracking
+
+  // 自訂餐點專用欄位
+  isCustom?: boolean;           // 是否為自訂餐點
+  customNutrition?: {           // 自訂營養數據
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  };
 }
 
 // ABC 選擇器 - 單個選項
@@ -40,7 +49,7 @@ export interface MealChoice {
   options: MealChoiceOption[];   // ABC 選項列表
 }
 
-export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+export type MealType = 'breakfast' | 'morningSnack' | 'lunch' | 'afternoonSnack' | 'dinner' | 'eveningSnack';
 
 // 單餐資料結構（支援單一模式與選擇模式）
 export interface MealData {
@@ -51,7 +60,8 @@ export interface MealData {
 export type DailyItems = Record<MealType, MealData>;
 
 // 舊版 DailyItems 結構（用於向後兼容轉換）
-export type LegacyDailyItems = Record<MealType, MenuEntry[]>;
+export type LegacyMealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+export type LegacyDailyItems = Record<LegacyMealType, MenuEntry[]>;
 
 export type PlanType = 'single' | 'cycle';
 
@@ -136,23 +146,40 @@ export type View = 'dashboard' | 'database' | 'builder' | 'templates';
 
 // 工具函數：將舊版 DailyItems 轉換為新版
 export const migrateLegacyDailyItems = (legacy: LegacyDailyItems): DailyItems => {
-  const meals: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
+  const legacyMeals: LegacyMealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
   const result = {} as DailyItems;
 
-  meals.forEach(meal => {
+  // 遷移舊餐次
+  legacyMeals.forEach(meal => {
     const entries = legacy[meal];
-    if (Array.isArray(entries)) {
-      result[meal] = { entries };
+    if (meal === 'snack') {
+      // 舊的 snack 預設搬到 afternoonSnack
+      result.afternoonSnack = { entries: Array.isArray(entries) ? entries : [] };
     } else {
-      result[meal] = entries; // 已經是新格式
+      const newMeal = meal as MealType;
+      if (Array.isArray(entries)) {
+        result[newMeal] = { entries };
+      } else {
+        result[newMeal] = { entries: [] };
+      }
+    }
+  });
+
+  // 確保所有新餐次都有預設值
+  const allMeals: MealType[] = ['breakfast', 'morningSnack', 'lunch', 'afternoonSnack', 'dinner', 'eveningSnack'];
+  allMeals.forEach(meal => {
+    if (!result[meal]) {
+      result[meal] = { entries: [] };
     }
   });
 
   return result;
 };
 
-// 工具函數：檢查是否為舊版格式
+// 工具函數：檢查是否為舊版格式（四餐制）
 export const isLegacyFormat = (day: any): day is LegacyDailyItems => {
-  return Array.isArray(day?.breakfast) || Array.isArray(day?.lunch) ||
-    Array.isArray(day?.dinner) || Array.isArray(day?.snack);
+  // 檢查是否有 snack 但沒有 morningSnack（舊版特徵）
+  const hasOldSnack = 'snack' in day;
+  const hasNewSnacks = 'morningSnack' in day || 'afternoonSnack' in day || 'eveningSnack' in day;
+  return hasOldSnack && !hasNewSnacks;
 };

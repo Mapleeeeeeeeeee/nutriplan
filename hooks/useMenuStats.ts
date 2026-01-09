@@ -23,6 +23,19 @@ const calculateEntryStats = (
     };
 
     entries.forEach(entry => {
+        // 處理自訂餐點
+        if (entry.isCustom && entry.customNutrition) {
+            const amount = entry.amount || 1;
+            totals.calories += entry.customNutrition.calories * amount;
+            totals.protein += entry.customNutrition.protein * amount;
+            totals.carbs += entry.customNutrition.carbs * amount;
+            totals.fat += entry.customNutrition.fat * amount;
+            // 自訂餐點歸類為 other
+            portions.other += (entry.portionValue || entry.amount);
+            return;
+        }
+
+        // 處理資料庫餐點
         const food = getFood(entry.foodId);
         if (food) {
             const mod = COOKING_MODIFIERS[entry.cookingMethod];

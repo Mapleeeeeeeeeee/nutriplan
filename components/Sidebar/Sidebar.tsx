@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { FoodItem, MealTemplate, MenuPlan, MealType, CookingMethod, FoodCategory, NutritionTotals } from '../../types';
+import { FoodItem, MealTemplate, MenuPlan, MealType, CookingMethod, FoodCategory, NutritionTotals, MenuEntry } from '../../types';
 import TemplateSelector from './TemplateSelector';
 import MacroConfigurator from './MacroConfigurator';
 import PortionConfigurator from './PortionConfigurator';
@@ -17,11 +17,12 @@ interface SidebarProps {
   onSaveCurrentTemplate: () => void;
   onDeleteTemplate: (id: string) => void;
   onAddFood: (meal: MealType, foodId: string, method: CookingMethod, portionDesc: string) => void;
+  onAddCustomFood?: (meal: MealType, customEntry: Partial<MenuEntry>) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   foods, templates, currentPlan, activeDayIndex, dayStats,
-  onUpdatePlan, onApplyTemplate, onSaveCurrentTemplate, onDeleteTemplate, onAddFood
+  onUpdatePlan, onApplyTemplate, onSaveCurrentTemplate, onDeleteTemplate, onAddFood, onAddCustomFood
 }) => {
   return (
     <div className="w-full lg:w-80 bg-white border-r border-gray-200 overflow-y-auto p-4 no-print space-y-6 shadow-xl z-20">
@@ -62,6 +63,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           foods={foods}
           activeDayIndex={activeDayIndex}
           onAdd={onAddFood}
+          onAddCustom={onAddCustomFood}
         />
       </div>
     </div>

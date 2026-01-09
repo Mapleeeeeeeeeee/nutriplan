@@ -229,9 +229,11 @@ export const CATEGORY_ICONS: Record<string, string> = {
 
 export const MEAL_LABELS: Record<string, string> = {
   breakfast: '早餐',
+  morningSnack: '早點',
   lunch: '午餐',
+  afternoonSnack: '午點',
   dinner: '晚餐',
-  snack: '點心'
+  eveningSnack: '晚點'
 };
 
 // 重新導出 exchangeConstants 的內容供其他模組使用

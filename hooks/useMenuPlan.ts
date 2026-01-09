@@ -17,9 +17,11 @@ export const createEmptyMealData = (): MealData => ({ entries: [] });
 /** 創建空的 DailyItems */
 export const createEmptyDay = (): DailyItems => ({
     breakfast: createEmptyMealData(),
+    morningSnack: createEmptyMealData(),
     lunch: createEmptyMealData(),
+    afternoonSnack: createEmptyMealData(),
     dinner: createEmptyMealData(),
-    snack: createEmptyMealData()
+    eveningSnack: createEmptyMealData()
 });
 
 /** 創建預設的 MenuPlan */

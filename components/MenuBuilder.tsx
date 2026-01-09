@@ -45,7 +45,7 @@ const MenuBuilder: React.FC<MenuBuilderProps> = ({ foods, templates, onAddTempla
     selectChoiceOption
   } = useChoiceActions({ currentPlan, setCurrentPlan, activeDayIndex });
 
-  const { addEntry, removeEntry, updateEntryField } = useEntryActions({
+  const { addEntry, addCustomEntry, removeEntry, updateEntryField } = useEntryActions({
     currentPlan,
     setCurrentPlan,
     activeDayIndex,
@@ -106,13 +106,19 @@ const MenuBuilder: React.FC<MenuBuilderProps> = ({ foods, templates, onAddTempla
   const handleApplyTemplate = (tpl: MealTemplate) => {
     const newDayMeals: DailyItems = {
       breakfast: { entries: [] },
+      morningSnack: { entries: [] },
       lunch: { entries: [] },
+      afternoonSnack: { entries: [] },
       dinner: { entries: [] },
-      snack: { entries: [] }
+      eveningSnack: { entries: [] }
     };
 
     tpl.items.forEach((item: any) => {
-      const mealKey = (item.meal as MealType) || 'breakfast';
+      // 處理舊版 snack → 新版 afternoonSnack
+      let mealKey = (item.meal as MealType) || 'breakfast';
+      if (mealKey === 'snack' as any) {
+        mealKey = 'afternoonSnack';
+      }
       const entry: MenuEntry = {
         id: Math.random().toString(36).substr(2, 9),
         foodId: item.foodId,
@@ -194,9 +200,11 @@ const MenuBuilder: React.FC<MenuBuilderProps> = ({ foods, templates, onAddTempla
         if (dayToCopy) {
           newDays[targetIdx] = {
             breakfast: cloneMealData(dayToCopy.breakfast),
+            morningSnack: cloneMealData(dayToCopy.morningSnack),
             lunch: cloneMealData(dayToCopy.lunch),
+            afternoonSnack: cloneMealData(dayToCopy.afternoonSnack),
             dinner: cloneMealData(dayToCopy.dinner),
-            snack: cloneMealData(dayToCopy.snack)
+            eveningSnack: cloneMealData(dayToCopy.eveningSnack)
           };
           newNotes[targetIdx] = newNotes[fromIdx];
         }
@@ -289,6 +297,7 @@ const MenuBuilder: React.FC<MenuBuilderProps> = ({ foods, templates, onAddTempla
         onSaveCurrentTemplate={handleSaveCurrentAsTemplate}
         onDeleteTemplate={onDeleteTemplate}
         onAddFood={addEntry}
+        onAddCustomFood={addCustomEntry}
       />
 
       <div className="flex-1 bg-slate-100 flex flex-col overflow-hidden relative">

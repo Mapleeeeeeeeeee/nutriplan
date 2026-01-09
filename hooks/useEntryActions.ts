@@ -6,6 +6,7 @@ import { CATEGORY_LABELS } from '../constants';
 
 export interface UseEntryActionsReturn {
     addEntry: (meal: MealType, foodId: string, method: CookingMethod, portionDesc: string) => void;
+    addCustomEntry: (meal: MealType, customEntry: Partial<MenuEntry>) => void;
     removeEntry: (meal: MealType, entryId: string) => void;
     updateEntryField: (meal: MealType, entryId: string, field: keyof MenuEntry, value: string) => void;
 }
@@ -86,6 +87,51 @@ export const useEntryActions = ({
         });
     }, [activeDayIndex, getFood, activeChoiceOption, setCurrentPlan]);
 
+    const addCustomEntry = useCallback((
+        meal: MealType,
+        customEntry: Partial<MenuEntry>
+    ) => {
+        const newEntry: MenuEntry = {
+            id: generateId(),
+            foodId: 'custom-' + generateId(),
+            amount: customEntry.amount || 1,
+            cookingMethod: customEntry.cookingMethod || 'original',
+            customName: customEntry.customName || '自訂餐點',
+            portionDescription: `${customEntry.amount || 1} 份`,
+            portionValue: customEntry.amount || 1,
+            isCustom: true,
+            customNutrition: customEntry.customNutrition
+        };
+
+        setCurrentPlan(prev => {
+            const newDays = [...prev.days];
+            const mealData = newDays[activeDayIndex][meal];
+
+            // 檢查是否為選擇模式且有選中的選項
+            if (mealData.choice?.enabled && activeChoiceOption?.meal === meal && activeChoiceOption.optionId) {
+                const updatedChoice = {
+                    ...mealData.choice,
+                    options: mealData.choice.options.map(opt =>
+                        opt.id === activeChoiceOption.optionId
+                            ? { ...opt, entries: [...opt.entries, newEntry] }
+                            : opt
+                    )
+                };
+                newDays[activeDayIndex] = {
+                    ...newDays[activeDayIndex],
+                    [meal]: { ...mealData, choice: updatedChoice }
+                };
+            } else {
+                newDays[activeDayIndex] = {
+                    ...newDays[activeDayIndex],
+                    [meal]: { ...mealData, entries: [...mealData.entries, newEntry] }
+                };
+            }
+
+            return { ...prev, days: newDays };
+        });
+    }, [activeDayIndex, activeChoiceOption, setCurrentPlan]);
+
     const removeEntry = useCallback((meal: MealType, entryId: string) => {
         setCurrentPlan(prev => {
             const newDays = [...prev.days];
@@ -131,5 +177,5 @@ export const useEntryActions = ({
         });
     }, [activeDayIndex, setCurrentPlan]);
 
-    return { addEntry, removeEntry, updateEntryField };
+    return { addEntry, addCustomEntry, removeEntry, updateEntryField };
 };

@@ -17,9 +17,11 @@ const createEmptyMealData = (): MealData => ({ entries: [] });
 
 const createEmptyDay = (): DailyItems => ({
     breakfast: createEmptyMealData(),
+    morningSnack: createEmptyMealData(),
     lunch: createEmptyMealData(),
+    afternoonSnack: createEmptyMealData(),
     dinner: createEmptyMealData(),
-    snack: createEmptyMealData(),
+    eveningSnack: createEmptyMealData(),
 });
 
 const createBasicPlan = (overrides?: Partial<MenuPlan>): MenuPlan => ({
@@ -453,7 +455,7 @@ describe('useMenuStats', () => {
                     portionValue: 1,
                 },
             ];
-            plan.days[0].snack.entries = [
+            plan.days[0].afternoonSnack.entries = [
                 {
                     id: 'entry-2',
                     foodId: 'low-fat-milk', // low fat

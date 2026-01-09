@@ -94,6 +94,33 @@ const DailyMenu: React.FC<DailyMenuProps> = ({
                   </div>
                 ) : (
                   entries.map(entry => {
+                    // 處理自訂餐點
+                    if (entry.isCustom && entry.customNutrition) {
+                      const customFood: FoodItem = {
+                        id: entry.foodId,
+                        name: entry.customName || '自訂餐點',
+                        portionSize: 1,
+                        portionUnit: '份',
+                        caloriesPerPortion: entry.customNutrition.calories,
+                        proteinPerPortion: entry.customNutrition.protein,
+                        carbsPerPortion: entry.customNutrition.carbs,
+                        fatPerPortion: entry.customNutrition.fat,
+                        category: 'other'
+                      };
+                      return (
+                        <MenuEntryCard
+                          key={entry.id}
+                          entry={entry}
+                          food={customFood}
+                          mealKey={mealKey}
+                          onUpdateField={onUpdateEntryField}
+                          onRemove={onRemoveEntry}
+                          onOpenSubPanel={onOpenSubPanel}
+                        />
+                      );
+                    }
+
+                    // 處理資料庫餐點
                     const food = getFood(entry.foodId);
                     if (!food) return null;
                     return (
